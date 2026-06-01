@@ -1,0 +1,49 @@
+{
+    "settings": {
+        "language": "DE"
+    },
+    "apps": {
+        "App1": "C:\\Path\\To\\Your\\Program1.exe",
+        "App2": "C:\\Path\\To\\Your\\Program2.exe",
+        "App3": "C:\\Path\\To\\Your\\Program3.exe",
+        "App4": "C:\\Path\\To\\Your\\Program4.exe",
+        "App5": "C:\\Path\\To\\Your\\Program5.exe"
+    },
+    "presets": {
+        "1": {
+            "name": "Preset 1",
+            "apps": [
+                "App1",
+                "App2"
+            ]
+        },
+        "2": {
+            "name": "Preset 2",
+            "apps": [
+                "App3",
+                "App4"
+            ]
+        },
+        "3": {
+            "name": "Preset 3",
+            "apps": [
+                "App1",
+                "App5"
+            ]
+        },
+        "4": {
+            "name": "Preset 4",
+            "apps": [
+                "App2",
+                "App4"
+            ]
+        },
+        "5": {
+            "name": "Preset 5",
+            "apps": [
+                "App2",
+                "App4"
+            ]
+        }
+    }
+}

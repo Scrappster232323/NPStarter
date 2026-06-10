@@ -1,10 +1,16 @@
-name: Build Linux Binary
+name: Build Linux Debian Package
 
-on: [push]
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Erlaubt GitHub Actions, Dateien zu Releases hinzuzufügen
 
     steps:
     - name: Code auschecken
@@ -15,17 +21,55 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Abhängigkeiten und PyInstaller installieren
+    - name: Abhängigkeiten installieren
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     - name: Binary kompilieren
-      run: pyinstaller --onefile Starter.py # Hier stand vorher noch mein_skript.py
+      run: |
+        pyinstaller --onefile Starter.py
 
-    - name: Datei hochladen
+    - name: Debian Paketstruktur erstellen
+      run: |
+        # Temporäre Verzeichnisstruktur für das Paket bauen
+        mkdir -p npstarter-pkg/DEBIAN
+        mkdir -p npstarter-pkg/usr/local/bin
+        mkdir -p npstarter-pkg/etc/npstarter
+
+        # Control-Datei für die APT-Paketverwaltung erstellen
+        cat <<EOF > npstarter-pkg/DEBIAN/control
+        Package: npstarter
+        Version: 1.0.0
+        Section: utils
+        Priority: optional
+        Architecture: amd64
+        Maintainer: Scrappster232323
+        Description: Terminal tool for network analysis and system management.
+        EOF
+
+        # Kompilierte Binary in das Systemverzeichnis des Pakets verschieben
+        # Name wird kleingeschrieben (npstarter), da das unter Linux für Terminal-Befehle Standard ist
+        cp dist/Starter npstarter-pkg/usr/local/bin/npstarter
+        
+        # Konfigurationsdateien kopieren (falls im Repo vorhanden)
+        if [ -f config.json ]; then cp config.json npstarter-pkg/etc/npstarter/; fi
+
+    - name: .deb Paket bauen
+      run: |
+        dpkg-deb --build npstarter-pkg npstarter.deb
+
+    - name: .deb Paket als Artefakt hochladen
       uses: actions/upload-artifact@v4
       with:
-        name: linux-executable
-        path: dist/
+        name: npstarter-debian-package
+        path: npstarter.deb
+
+    - name: .deb in GitHub Releases hochladen
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: npstarter.deb
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
